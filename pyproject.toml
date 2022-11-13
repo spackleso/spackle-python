@@ -1,8 +1,8 @@
 [tool.poetry]
 name = "spackle-python"
-version = "0.1.0"
+version = "0.0.1"
 description = ""
-authors = ["Hunter Clarke <hunter@hunterclarke.me>"]
+authors = ["Hunter Clarke <hunter@spackle.so>"]
 readme = "README.md"
 packages = [{include = "spackle"}]
 

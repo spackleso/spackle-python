@@ -1,4 +1,5 @@
 import requests
+from .exceptions import SpackleException
 
 
 class Customer:
@@ -24,7 +25,7 @@ class Customer:
         data = response.json()
 
         if response.status_code != 200:
-            raise Exception(data.get("error", "Unknown error"))
+            raise SpackleException(data.get("error", "Unknown error"))
 
         return Customer(data)
 
