@@ -4,11 +4,17 @@ version = "0.1.0"
 description = ""
 authors = ["Hunter Clarke <hunter@hunterclarke.me>"]
 readme = "README.md"
-packages = [{include = "spackle_python"}]
+packages = [{include = "spackle"}]
 
 [tool.poetry.dependencies]
 python = "^3.9"
+requests = "^2.28.1"
 
+
+[tool.poetry.group.dev.dependencies]
+pytest = "^7.2.0"
+black = "^22.10.0"
+requests-mock = "^1.10.0"
 
 [build-system]
 requires = ["poetry-core"]
