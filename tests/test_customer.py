@@ -6,7 +6,7 @@ spackle.api_key = "abc123"
 class TestCustomer:
     def test_retrieve(self, requests_mock):
         requests_mock.get(
-            "https://www.spackle.so/api/v1/customers/cus_123/state",
+            "https://www.spackle.so/edge/v1/customers/cus_123/state",
             json={
                 "subscriptions": [],
                 "features": [],

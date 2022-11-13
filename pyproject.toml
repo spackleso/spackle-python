@@ -1,6 +1,6 @@
 [tool.poetry]
 name = "spackle-python"
-version = "0.0.1"
+version = "0.0.2"
 description = ""
 authors = ["Hunter Clarke <hunter@spackle.so>"]
 readme = "README.md"
@@ -9,7 +9,6 @@ packages = [{include = "spackle"}]
 [tool.poetry.dependencies]
 python = "^3.9"
 requests = "^2.28.1"
-
 
 [tool.poetry.group.dev.dependencies]
 pytest = "^7.2.0"
