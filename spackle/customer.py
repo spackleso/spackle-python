@@ -1,5 +1,8 @@
-import requests
-from .exceptions import SpackleException
+import json
+import time
+
+from spackle import dynamodb
+from spackle.exceptions import SpackleException
 
 
 class Customer:
@@ -7,26 +10,17 @@ class Customer:
         self.data = data
 
     @staticmethod
-    def retrieve(customer_id, api_key=None, api_base=None):
-        my_api_key = api_key
-        if not my_api_key:
-            from spackle import api_key
+    def retrieve(customer_id):
+        dynamodb_client = dynamodb.get_client()
+        response = dynamodb_client.get_item(
+            TableName=dynamodb.table_name,
+            Key={
+                "AccountId": {"S": dynamodb.identity_id},
+                "CustomerId": {"S": customer_id},
+            },
+        )
 
-            my_api_key = api_key
-
-        my_api_base = api_base
-        if not my_api_base:
-            from spackle import api_base
-
-            my_api_base = api_base
-
-        url = f"{my_api_base}/customers/{customer_id}/state"
-        response = requests.get(url, headers={"Authorization": "Bearer " + my_api_key})
-        data = response.json()
-
-        if response.status_code != 200:
-            raise SpackleException(data.get("error", "Unknown error"))
-
+        data = json.loads(response["Item"]["State"]["S"])
         return Customer(data)
 
     def enabled(self, key):
