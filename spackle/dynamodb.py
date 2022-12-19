@@ -10,31 +10,28 @@ _aws_session_token = None
 
 table_name = None
 identity_id = None
+client = None
 
 
 def get_client():
     if (
-        _aws_access_key_id is None
+        client is None
+        or _aws_access_key_id is None
         or _aws_secret_access_key is None
         or _aws_session_token is None
         or _aws_session_expiration is None
         or _aws_region is None
         or _aws_session_expiration < datetime.now(timezone.utc)
     ):
-        _fetch_credentials()
+        _bootstrap_client()
 
-    return boto3.client(
-        "dynamodb",
-        aws_access_key_id=_aws_access_key_id,
-        aws_secret_access_key=_aws_secret_access_key,
-        aws_session_token=_aws_session_token,
-        region_name=_aws_region,
-    )
+    return client
 
 
-def _fetch_credentials():
+def _bootstrap_client():
     from spackle import api_key, api_base
 
+    global client
     global table_name
     global identity_id
     global _aws_access_key_id
@@ -62,3 +59,11 @@ def _fetch_credentials():
     _aws_secret_access_key = credentials["Credentials"]["SecretAccessKey"]
     _aws_session_token = credentials["Credentials"]["SessionToken"]
     _aws_session_expiration = credentials["Credentials"]["Expiration"]
+
+    client = boto3.client(
+        "dynamodb",
+        aws_access_key_id=_aws_access_key_id,
+        aws_secret_access_key=_aws_secret_access_key,
+        aws_session_token=_aws_session_token,
+        region_name=_aws_region,
+    )
