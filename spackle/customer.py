@@ -25,14 +25,14 @@ class Customer:
 
     def enabled(self, key):
         for feature in self.data["features"]:
-            if feature["name"] == key:
-                return feature["value_enabled"]
+            if feature["key"] == key:
+                return feature["value_flag"]
 
         return False
 
     def limit(self, key):
         for feature in self.data["features"]:
-            if feature["name"] == key:
+            if feature["key"] == key:
                 return feature["value_limit"]
 
         return 0
