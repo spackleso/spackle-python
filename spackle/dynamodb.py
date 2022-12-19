@@ -1,6 +1,7 @@
 import boto3
 import requests
 from datetime import datetime, timezone
+from spackle import log
 
 _aws_access_key_id = None
 _aws_region = None
@@ -29,6 +30,7 @@ def get_client():
 
 
 def _bootstrap_client():
+    log.log_debug("Bootstrapping DynamoDB client...")
     from spackle import api_key, api_base
 
     global client
@@ -44,6 +46,7 @@ def _bootstrap_client():
         f"{api_base}/auth/session",
         headers={"Authorization": f"Bearer {api_key}"},
     ).json()
+    log.log_debug("Created session: %s" % session)
 
     sts_client = boto3.client("sts")
     credentials = sts_client.assume_role_with_web_identity(

@@ -1,16 +1,17 @@
 import json
-import time
+import pprint
 
-from spackle import dynamodb
-from spackle.exceptions import SpackleException
+from spackle import dynamodb, log
 
 
 class Customer:
-    def __init__(self, data):
+    def __init__(self, id, data):
+        self.id = id
         self.data = data
 
     @staticmethod
     def retrieve(customer_id):
+        log.log_debug("Retrieving customer data for %s" % customer_id)
         dynamodb_client = dynamodb.get_client()
         response = dynamodb_client.get_item(
             TableName=dynamodb.table_name,
@@ -21,7 +22,8 @@ class Customer:
         )
 
         data = json.loads(response["Item"]["State"]["S"])
-        return Customer(data)
+        log.log_debug("Retrieved customer data for %s: %s" % (customer_id, data))
+        return Customer(customer_id, data)
 
     def enabled(self, key):
         for feature in self.data["features"]:
@@ -36,3 +38,6 @@ class Customer:
                 return feature["value_limit"]
 
         return 0
+
+    def __repr__(self):
+        return f"<Customer ({self.id}):\n{pprint.pformat(self.data)}>"
