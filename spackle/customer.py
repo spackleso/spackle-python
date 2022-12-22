@@ -14,9 +14,9 @@ class Customer:
         log.log_debug("Retrieving customer data for %s" % customer_id)
         dynamodb_client = dynamodb.get_client()
         response = dynamodb_client.get_item(
-            TableName=dynamodb.table_name,
+            TableName=dynamodb.config.table_name,
             Key={
-                "AccountId": {"S": dynamodb.identity_id},
+                "AccountId": {"S": dynamodb.config.identity_id},
                 "CustomerId": {"S": customer_id},
             },
         )

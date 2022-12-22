@@ -1,46 +1,41 @@
 import boto3
 import requests
+import threading
 from datetime import datetime, timezone
 from spackle import log
 
-_aws_access_key_id = None
-_aws_region = None
-_aws_secret_access_key = None
-_aws_session_expiration = None
-_aws_session_token = None
-
-table_name = None
-identity_id = None
-client = None
+config = threading.local()
 
 
 def get_client():
-    if (
-        client is None
-        or _aws_access_key_id is None
-        or _aws_secret_access_key is None
-        or _aws_session_token is None
-        or _aws_session_expiration is None
-        or _aws_region is None
-        or _aws_session_expiration < datetime.now(timezone.utc)
-    ):
+    if not hasattr(config, "client"):
+        log.log_debug("Client not found, bootstrapping...")
+        _bootstrap_client()
+    elif not hasattr(config, "aws_access_key_id"):
+        log.log_debug("AWS Access Key ID not found, bootstrapping...")
+        _bootstrap_client()
+    elif not hasattr(config, "aws_secret_access_key"):
+        log.log_debug("AWS Secret Access Key not found, bootstrapping...")
+        _bootstrap_client()
+    elif not hasattr(config, "aws_session_token"):
+        log.log_debug("AWS Session Token not found, bootstrapping...")
+        _bootstrap_client()
+    elif not hasattr(config, "aws_region"):
+        log.log_debug("AWS Region not found, bootstrapping...")
+        _bootstrap_client()
+    elif not hasattr(config, "aws_session_expiration"):
+        log.log_debug("AWS Session Expiration not found, bootstrapping...")
+        _bootstrap_client()
+    elif config.aws_session_expiration < datetime.now(timezone.utc):
+        log.log_debug("AWS Session Expiration has expired, bootstrapping...")
         _bootstrap_client()
 
-    return client
+    return config.client
 
 
 def _bootstrap_client():
     log.log_debug("Bootstrapping DynamoDB client...")
     from spackle import api_key, api_base
-
-    global client
-    global table_name
-    global identity_id
-    global _aws_access_key_id
-    global _aws_region
-    global _aws_secret_access_key
-    global _aws_session_token
-    global _aws_session_expiration
 
     session = requests.post(
         f"{api_base}/auth/session",
@@ -55,18 +50,18 @@ def _bootstrap_client():
         WebIdentityToken=session["token"],
     )
 
-    identity_id = session["identity_id"]
-    table_name = session["table_name"]
-    _aws_access_key_id = credentials["Credentials"]["AccessKeyId"]
-    _aws_region = session["aws_region"]
-    _aws_secret_access_key = credentials["Credentials"]["SecretAccessKey"]
-    _aws_session_token = credentials["Credentials"]["SessionToken"]
-    _aws_session_expiration = credentials["Credentials"]["Expiration"]
+    config.identity_id = session["identity_id"]
+    config.table_name = session["table_name"]
+    config.aws_access_key_id = credentials["Credentials"]["AccessKeyId"]
+    config.aws_region = session["aws_region"]
+    config.aws_secret_access_key = credentials["Credentials"]["SecretAccessKey"]
+    config.aws_session_token = credentials["Credentials"]["SessionToken"]
+    config.aws_session_expiration = credentials["Credentials"]["Expiration"]
 
-    client = boto3.client(
+    config.client = boto3.client(
         "dynamodb",
-        aws_access_key_id=_aws_access_key_id,
-        aws_secret_access_key=_aws_secret_access_key,
-        aws_session_token=_aws_session_token,
-        region_name=_aws_region,
+        aws_access_key_id=config.aws_access_key_id,
+        aws_secret_access_key=config.aws_secret_access_key,
+        aws_session_token=config.aws_session_token,
+        region_name=config.aws_region,
     )
