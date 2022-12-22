@@ -1,67 +1,65 @@
 import boto3
 import requests
-import threading
-from datetime import datetime, timezone
 from spackle import log
+from botocore.credentials import RefreshableCredentials
+from boto3 import Session
+from botocore.session import get_session
 
-config = threading.local()
+
+client = None
+identity_id = None
+table_name = None
+aws_region = None
 
 
 def get_client():
-    if not hasattr(config, "client"):
-        log.log_debug("Client not found, bootstrapping...")
-        _bootstrap_client()
-    elif not hasattr(config, "aws_access_key_id"):
-        log.log_debug("AWS Access Key ID not found, bootstrapping...")
-        _bootstrap_client()
-    elif not hasattr(config, "aws_secret_access_key"):
-        log.log_debug("AWS Secret Access Key not found, bootstrapping...")
-        _bootstrap_client()
-    elif not hasattr(config, "aws_session_token"):
-        log.log_debug("AWS Session Token not found, bootstrapping...")
-        _bootstrap_client()
-    elif not hasattr(config, "aws_region"):
-        log.log_debug("AWS Region not found, bootstrapping...")
-        _bootstrap_client()
-    elif not hasattr(config, "aws_session_expiration"):
-        log.log_debug("AWS Session Expiration not found, bootstrapping...")
-        _bootstrap_client()
-    elif config.aws_session_expiration < datetime.now(timezone.utc):
-        log.log_debug("AWS Session Expiration has expired, bootstrapping...")
-        _bootstrap_client()
+    global client
 
-    return config.client
+    if client is None:
+        client = _bootstrap_client()
+
+    return client
 
 
 def _bootstrap_client():
-    log.log_debug("Bootstrapping DynamoDB client...")
+    session_credentials = RefreshableCredentials.create_from_metadata(
+        metadata=_fetch_credentials(),
+        refresh_using=_fetch_credentials,
+        method="sts-assume-role-with-web-identity",
+    )
+    session = get_session()
+    session._credentials = session_credentials
+    session.set_config_variable("region", aws_region)
+    autorefresh_session = Session(botocore_session=session)
+    return autorefresh_session.client("dynamodb", region_name=aws_region)
+
+
+def _fetch_credentials():
     from spackle import api_key, api_base
 
+    global identity_id
+    global table_name
+    global aws_region
+
+    log.log_debug("Bootstrapping DynamoDB client...")
     session = requests.post(
         f"{api_base}/auth/session",
         headers={"Authorization": f"Bearer {api_key}"},
     ).json()
+    identity_id = session["identity_id"]
+    table_name = session["table_name"]
+    aws_region = session["aws_region"]
     log.log_debug("Created session: %s" % session)
 
     sts_client = boto3.client("sts")
-    credentials = sts_client.assume_role_with_web_identity(
+    response = sts_client.assume_role_with_web_identity(
         RoleArn=session["role_arn"],
         RoleSessionName=session["account_id"],
         WebIdentityToken=session["token"],
     )
-
-    config.identity_id = session["identity_id"]
-    config.table_name = session["table_name"]
-    config.aws_access_key_id = credentials["Credentials"]["AccessKeyId"]
-    config.aws_region = session["aws_region"]
-    config.aws_secret_access_key = credentials["Credentials"]["SecretAccessKey"]
-    config.aws_session_token = credentials["Credentials"]["SessionToken"]
-    config.aws_session_expiration = credentials["Credentials"]["Expiration"]
-
-    config.client = boto3.client(
-        "dynamodb",
-        aws_access_key_id=config.aws_access_key_id,
-        aws_secret_access_key=config.aws_secret_access_key,
-        aws_session_token=config.aws_session_token,
-        region_name=config.aws_region,
-    )
+    return {
+        "access_key": response["Credentials"]["AccessKeyId"],
+        "secret_key": response["Credentials"]["SecretAccessKey"],
+        "token": response["Credentials"]["SessionToken"],
+        "expiry_time": response["Credentials"]["Expiration"].isoformat(),
+    }
