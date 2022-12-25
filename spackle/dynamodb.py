@@ -59,7 +59,3 @@ class DynamoDB:
 def get_client():
     log.log_debug("Creating DynamoDB client...")
     return DynamoDB()
-
-
-def bootstrap():
-    get_client()
