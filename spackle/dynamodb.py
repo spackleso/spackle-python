@@ -55,7 +55,7 @@ class DynamoDB:
         }
 
 
-@lru_cache()
+@lru_cache(maxsize=1)
 def get_client():
     log.log_debug("Creating DynamoDB client...")
     return DynamoDB()
