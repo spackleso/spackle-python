@@ -57,16 +57,21 @@ customer.limit('feature_key')
 The Spackle Python library emits logs as it performs various internal tasks. You can control the verbosity of Spackle's logging a few different ways:
 
 1. Set the environment variable SPACKLE_LOG to the value debug or info
-   ```
+
+   ```sh
    $ export SPACKLE_LOG=debug
    ```
+
 2. Set spackle.log:
-   ```
+
+   ```python
    import spackle
    spackle.log = 'debug'
    ```
+
 3. Enable it through Python's logging module:
-   ```
+
+   ```python
    import logging
    logging.basicConfig()
    logging.getLogger('spackle').setLevel(logging.DEBUG)
