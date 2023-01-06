@@ -1,6 +1,6 @@
 # Spackle Python Library
 
-[![CI](https://github.com/spackleso/spackle-python/actions/workflows/test.yml/badge.svg)](https://github.com/spackleso/spackle-python/actions/workflows/test.yml)
+[![CI](https://github.com/spackleso/spackle-python/actions/workflows/test.yml/badge.svg)](https://github.com/spackleso/spackle-python/actions/workflows/test.yml) [![pypi](https://img.shields.io/pypi/v/spackle-python.svg)](https://pypi.python.org/pypi/spackle-python)
 
 The Spackle Python library provides optimized access to billing aware flags created on the Spackle platform.
 
