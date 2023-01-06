@@ -13,7 +13,7 @@ See the [Python API docs](https://docs.spackle.so/python).
 ### Install the Spackle library
 
 ```sh
-pip install spackle-python
+pip install -U spackle-python
 ```
 
 ### Configure your environment
