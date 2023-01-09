@@ -13,12 +13,10 @@ class Customer:
     def retrieve(customer_id):
         log.log_debug("Retrieving customer data for %s" % customer_id)
         dynamodb_client = dynamodb.get_client()
-        response = dynamodb_client.client.get_item(
-            TableName=dynamodb_client.table_name,
-            Key={
-                "AccountId": {"S": dynamodb_client.identity_id},
+        response = dynamodb_client.get_item(
+            {
                 "CustomerId": {"S": customer_id},
-            },
+            }
         )
 
         data = json.loads(response["Item"]["State"]["S"])
