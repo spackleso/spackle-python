@@ -12,7 +12,6 @@ class DynamoDB:
     client = None
     identity_id = None
     table_name = None
-    aws_region = None
     role_arn = None
     token = None
 
@@ -39,9 +38,8 @@ class DynamoDB:
         )
         session = get_session()
         session._credentials = session_credentials
-        session.set_config_variable("region", self.aws_region)
         autorefresh_session = Session(botocore_session=session)
-        return autorefresh_session.client("dynamodb", region_name=self.aws_region)
+        return autorefresh_session.client("dynamodb")
 
     def _create_session(self):
         from spackle import api_key, api_base
@@ -52,7 +50,6 @@ class DynamoDB:
         ).json()
         self.identity_id = session["identity_id"]
         self.table_name = session["table_name"]
-        self.aws_region = session["aws_region"]
         self.token = session["token"]
         self.role_arn = session["role_arn"]
         log.log_debug("Created session: %s" % session)
