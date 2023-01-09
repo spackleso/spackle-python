@@ -8,7 +8,7 @@ spackle.api_key = "abc123"
 class TestCustomer:
     def test_retrieve(self):
         mock_client = mock.Mock()
-        mock_client.client.get_item.return_value = {
+        mock_client.get_item.return_value = {
             "Item": {
                 "State": {
                     "S": '{"subscriptions": [], "features": [{"key": "foo", "value_flag": true}]}'
