@@ -29,11 +29,10 @@ class DynamoDB:
 
     def _bootstrap_client(self):
         log.log_debug("Bootstrapping DynamoDB client...")
-        self._create_session()
 
         session_credentials = RefreshableCredentials.create_from_metadata(
-            metadata=self._fetch_credentials(),
-            refresh_using=self._fetch_credentials,
+            metadata=self._refresh(),
+            refresh_using=self._refresh,
             method="sts-assume-role-with-web-identity",
         )
         session = get_session()
@@ -41,9 +40,10 @@ class DynamoDB:
         autorefresh_session = Session(botocore_session=session)
         return autorefresh_session.client("dynamodb")
 
-    def _create_session(self):
+    def _refresh(self):
         from spackle import api_key, api_base
 
+        log.log_debug("Refreshing credentials...")
         session = requests.post(
             f"{api_base}/auth/session",
             headers={"Authorization": f"Bearer {api_key}"},
@@ -54,14 +54,14 @@ class DynamoDB:
         self.role_arn = session["role_arn"]
         log.log_debug("Created session: %s" % session)
 
-    def _fetch_credentials(self):
-        log.log_debug("Refreshing credentials...")
+        log.log_debug("Assuming aws role %s..." % self.role_arn)
         sts_client = boto3.client("sts")
         response = sts_client.assume_role_with_web_identity(
             RoleArn=self.role_arn,
             RoleSessionName=str(uuid.uuid4()),
             WebIdentityToken=self.token,
         )
+
         return {
             "access_key": response["Credentials"]["AccessKeyId"],
             "secret_key": response["Credentials"]["SecretAccessKey"],
