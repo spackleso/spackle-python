@@ -3,7 +3,7 @@ from spackle.exceptions import SpackleException
 from spackle.dynamodb import get_client
 
 api_key = None
-api_base = "https://api.spackle.so"
+api_base = "https://api.spackle.so/v1"
 
 
 def bootstrap():
