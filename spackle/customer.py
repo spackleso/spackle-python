@@ -2,6 +2,9 @@ import json
 import pprint
 
 from spackle import dynamodb, log
+from spackle.exceptions import SpackleException
+
+VERSION = 1
 
 
 class Customer:
@@ -16,6 +19,7 @@ class Customer:
         response = dynamodb_client.get_item(
             {
                 "CustomerId": {"S": customer_id},
+                "Version": {"N": str(VERSION)}
             }
         )
 
@@ -23,19 +27,31 @@ class Customer:
         log.log_debug("Retrieved customer data for %s: %s" % (customer_id, data))
         return Customer(customer_id, data)
 
+    @property
+    def features(self):
+        return self.data["features"]
+
+    @property
+    def flag_features(self):
+        return [f for f in self.data["features"] if f["type"] == 0]
+
+    @property
+    def limit_features(self):
+        return [f for f in self.data["features"] if f["type"] == 1]
+
     def enabled(self, key):
-        for feature in self.data["features"]:
+        for feature in self.flag_features:
             if feature["key"] == key:
                 return feature["value_flag"]
 
-        return False
+        raise SpackleException("Flag feature %s not found" % key)
 
     def limit(self, key):
-        for feature in self.data["features"]:
+        for feature in self.limit_features:
             if feature["key"] == key:
-                return feature["value_limit"]
+                return feature["value_limit"] or float("inf")
 
-        return 0
+        raise SpackleException("Limit feature %s not found" % key)
 
     def __repr__(self):
         return f"<Customer ({self.id}):\n{pprint.pformat(self.data)}>"

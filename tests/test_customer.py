@@ -1,5 +1,6 @@
 import spackle
 
+import pytest
 from unittest import mock
 
 spackle.api_key = "abc123"
@@ -11,7 +12,7 @@ class TestCustomer:
         mock_client.get_item.return_value = {
             "Item": {
                 "State": {
-                    "S": '{"subscriptions": [], "features": [{"key": "foo", "value_flag": true}]}'
+                    "S": '{"subscriptions": [], "features": [{"key": "foo", "value_flag": true, "type": 0}]}'
                 }
             }
         }
@@ -26,19 +27,26 @@ class TestCustomer:
             "cus_123",
             data={
                 "subscriptions": [],
-                "features": [{"key": "foo", "value_flag": True}],
+                "features": [{"key": "foo", "value_flag": True, "type": 0}],
             },
         )
         assert customer.enabled("foo") is True
-        assert customer.enabled("bar") is False
+        with pytest.raises(spackle.SpackleException):
+            customer.enabled("bar")
 
     def test_limit(self):
         customer = spackle.Customer(
             "cus_123",
             data={
                 "subscriptions": [],
-                "features": [{"key": "foo", "value_limit": 100}],
+                "features": [
+                    {"key": "foo", "value_limit": 100, "type": 1},
+                    {"key": "unlimited", "value_limit": None, "type": 1},
+                ],
             },
         )
         assert customer.limit("foo") == 100
-        assert customer.limit("bar") == 0
+        assert customer.limit("unlimited") == float("inf")
+        assert customer.limit("unlimited") > 100
+        with pytest.raises(spackle.SpackleException):
+            customer.limit("bar")
