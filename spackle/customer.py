@@ -17,8 +17,8 @@ class Customer:
         log.log_debug("Retrieving customer data for %s" % customer_id)
         dynamodb_client = dynamodb.get_client()
         response = dynamodb_client.query(
-            KeyConditionExpression=f"CustomerId = :customer_id",
-            FilterExpression=f"Version = :version",
+            KeyConditionExpression="CustomerId = :customer_id",
+            FilterExpression="Version = :version",
             ExpressionAttributeValues={
                 ":customer_id": {"S": customer_id},
                 ":version": {"N": str(VERSION)},
