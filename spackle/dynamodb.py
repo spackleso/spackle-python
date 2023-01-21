@@ -1,11 +1,11 @@
-from functools import lru_cache
 import boto3
 import requests
 import uuid
-from spackle import log
-from botocore.credentials import RefreshableCredentials
 from boto3 import Session
+from botocore.credentials import RefreshableCredentials
 from botocore.session import get_session
+from functools import lru_cache
+from spackle import log
 
 from spackle.exceptions import SpackleException
 
@@ -26,6 +26,20 @@ class DynamoDB:
                 "AccountId": {"S": self.adapter_config["identity_id"]},
                 **key,
             },
+        )
+
+    def query(self, KeyConditionExpression, ExpressionAttributeValues, **kwargs):
+        if not self.adapter_config:
+            raise SpackleException("Adapter not configured")
+
+        return self.client.query(
+            TableName=self.adapter_config["table_name"],
+            KeyConditionExpression=f"AccountId = :account_id AND {KeyConditionExpression}",
+            ExpressionAttributeValues={
+                ":account_id": {"S": self.adapter_config["identity_id"]},
+                **ExpressionAttributeValues,
+            },
+            **kwargs,
         )
 
     def _bootstrap_client(self):

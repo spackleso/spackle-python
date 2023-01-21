@@ -9,12 +9,14 @@ spackle.api_key = "abc123"
 class TestCustomer:
     def test_retrieve(self):
         mock_client = mock.Mock()
-        mock_client.get_item.return_value = {
-            "Item": {
-                "State": {
-                    "S": '{"subscriptions": [], "features": [{"key": "foo", "value_flag": true, "type": 0}]}'
+        mock_client.query.return_value = {
+            "Items": [
+                {
+                    "State": {
+                        "S": '{"subscriptions": [], "features": [{"key": "foo", "value_flag": true, "type": 0}]}'
+                    }
                 }
-            }
+            ]
         }
 
         with mock.patch("spackle.dynamodb.get_client", return_value=mock_client):

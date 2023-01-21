@@ -16,14 +16,21 @@ class Customer:
     def retrieve(customer_id):
         log.log_debug("Retrieving customer data for %s" % customer_id)
         dynamodb_client = dynamodb.get_client()
-        response = dynamodb_client.get_item(
-            {
-                "CustomerId": {"S": customer_id},
-                "Version": {"N": str(VERSION)}
-            }
+        response = dynamodb_client.query(
+            KeyConditionExpression="CustomerId = :customer_id",
+            FilterExpression="Version = :version",
+            ExpressionAttributeValues={
+                ":customer_id": {"S": customer_id},
+                ":version": {"N": str(VERSION)},
+            },
+            Limit=1,
         )
 
-        data = json.loads(response["Item"]["State"]["S"])
+        items = response.get("Items")
+        if not items:
+            raise SpackleException("Customer %s not found" % customer_id)
+
+        data = json.loads(items[0]["State"]["S"])
         log.log_debug("Retrieved customer data for %s: %s" % (customer_id, data))
         return Customer(customer_id, data)
 
