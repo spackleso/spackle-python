@@ -44,11 +44,13 @@ class TestCustomer:
                 "features": [
                     {"key": "foo", "value_limit": 100, "type": 1},
                     {"key": "unlimited", "value_limit": None, "type": 1},
+                    {"key": "zero", "value_limit": 0, "type": 1},
                 ],
             },
         )
         assert customer.limit("foo") == 100
         assert customer.limit("unlimited") == float("inf")
         assert customer.limit("unlimited") > 100
+        assert customer.limit("zero") == 0
         with pytest.raises(spackle.SpackleException):
             customer.limit("bar")

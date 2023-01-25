@@ -56,7 +56,9 @@ class Customer:
     def limit(self, key):
         for feature in self.limit_features:
             if feature["key"] == key:
-                return feature["value_limit"] or float("inf")
+                if feature["value_limit"] is None:
+                    return float("inf")
+                return feature["value_limit"]
 
         raise SpackleException("Limit feature %s not found" % key)
 
