@@ -16,3 +16,7 @@ def get_store():
     if not hasattr(_thread, "adapter") or not isinstance(_thread.adapter, store_cls):
         _thread.adapter = store_cls()
     return _thread.adapter
+
+
+def bootstrap():
+    get_store()
