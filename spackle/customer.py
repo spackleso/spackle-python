@@ -1,10 +1,8 @@
 import json
 import pprint
 
-from spackle import dynamodb, log
+from spackle import log
 from spackle.exceptions import SpackleException
-
-VERSION = 1
 
 
 class Customer:
@@ -14,23 +12,10 @@ class Customer:
 
     @staticmethod
     def retrieve(customer_id):
+        from spackle import get_store
+
         log.log_debug("Retrieving customer data for %s" % customer_id)
-        dynamodb_client = dynamodb.get_client()
-        response = dynamodb_client.query(
-            KeyConditionExpression="CustomerId = :customer_id",
-            FilterExpression="Version = :version",
-            ExpressionAttributeValues={
-                ":customer_id": {"S": customer_id},
-                ":version": {"N": str(VERSION)},
-            },
-            Limit=1,
-        )
-
-        items = response.get("Items")
-        if not items:
-            raise SpackleException("Customer %s not found" % customer_id)
-
-        data = json.loads(items[0]["State"]["S"])
+        data = get_store().get_customer_data(customer_id)
         log.log_debug("Retrieved customer data for %s: %s" % (customer_id, data))
         return Customer(customer_id, data)
 

@@ -1,49 +1,47 @@
 import boto3
+import json
 import requests
 import uuid
 from boto3 import Session
 from botocore.credentials import RefreshableCredentials
 from botocore.session import get_session
-from functools import lru_cache
 from spackle import log
 
+from spackle.stores.base import Store
 from spackle.exceptions import SpackleException
 
 
-class DynamoDB:
-    adapter_config = None
+class DynamoDBStore(Store):
+    adapter_config = {}
 
     def __init__(self):
         self.client = self._bootstrap_client()
 
-    def get_item(self, key):
-        if not self.adapter_config:
-            raise SpackleException("Adapter not configured")
+    def get_customer_data(self, customer_id):
+        from spackle import schema_version
 
-        return self.client.get_item(
-            TableName=self.adapter_config["table_name"],
-            Key={
-                "AccountId": {"S": self.adapter_config["identity_id"]},
-                **key,
-            },
-        )
-
-    def query(self, KeyConditionExpression, ExpressionAttributeValues, **kwargs):
-        if not self.adapter_config:
-            raise SpackleException("Adapter not configured")
-
-        return self.client.query(
-            TableName=self.adapter_config["table_name"],
-            KeyConditionExpression=f"AccountId = :account_id AND {KeyConditionExpression}",
+        response = self.client.query(
             ExpressionAttributeValues={
-                ":account_id": {"S": self.adapter_config["identity_id"]},
-                **ExpressionAttributeValues,
+                ":account_id": {"S": self.adapter_config.get("identity_id", "")},
+                ":customer_id": {"S": customer_id},
+                ":version": {"N": str(schema_version)},
             },
-            **kwargs,
+            FilterExpression="Version = :version",
+            KeyConditionExpression=f"AccountId = :account_id AND CustomerId = :customer_id",
+            Limit=1,
+            TableName=self.adapter_config.get("table_name", ""),
         )
+
+        items = response.get("Items")
+        if not items:
+            raise SpackleException("Customer %s not found" % customer_id)
+
+        data = json.loads(items[0]["State"]["S"])
+        log.log_debug("Retrieved customer data for %s: %s" % (customer_id, data))
+        return data
 
     def _bootstrap_client(self):
-        log.log_debug("Bootstrapping DynamoDB client...")
+        log.log_debug("Creating DynamoDB client...")
 
         session_credentials = RefreshableCredentials.create_from_metadata(
             metadata=self._refresh_credentials(),
@@ -59,10 +57,10 @@ class DynamoDB:
 
     def _refresh_credentials(self):
         log.log_debug("Refreshing credentials...")
-        self._configure()
+        self._create_session()
         return self._fetch_credentials()
 
-    def _configure(self):
+    def _create_session(self):
         from spackle import api_key, api_base
 
         session = requests.post(
@@ -76,9 +74,6 @@ class DynamoDB:
         return session
 
     def _fetch_credentials(self):
-        if not self.adapter_config:
-            raise SpackleException("Adapter not configured")
-
         log.log_debug("Assuming aws role %s..." % self.adapter_config["role_arn"])
         sts_client = boto3.client("sts")
         response = sts_client.assume_role_with_web_identity(
@@ -93,9 +88,3 @@ class DynamoDB:
             "token": response["Credentials"]["SessionToken"],
             "expiry_time": response["Credentials"]["Expiration"].isoformat(),
         }
-
-
-@lru_cache(maxsize=1)
-def get_client():
-    log.log_debug("Creating DynamoDB client...")
-    return DynamoDB()
