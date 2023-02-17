@@ -6,7 +6,7 @@ class MemoryStore(Store):
         self.data = {}
 
     def get_customer_data(self, customer_id):
-        return self.data[customer_id]
+        return self.data.get(customer_id, None)
 
     def set_customer_data(self, customer_id, data):
         self.data[customer_id] = data
