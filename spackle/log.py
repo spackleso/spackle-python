@@ -14,9 +14,9 @@ logger = logging.getLogger("spackle")
 
 
 def _console_log_level():
-    if spackle.log in ["debug", "info"]:
+    if spackle.log in ["debug", "info", "warn"]:
         return spackle.log
-    elif SPACKLE_LOG in ["debug", "info"]:
+    elif SPACKLE_LOG in ["debug", "info", "warn"]:
         return SPACKLE_LOG
     else:
         return None
@@ -34,6 +34,13 @@ def log_info(message, **params):
     if _console_log_level() in ["debug", "info"]:
         print(msg, file=sys.stderr)
     logger.info(msg)
+
+
+def log_warn(message, **params):
+    msg = logfmt(dict(message=message, **params))
+    if _console_log_level() in ["debug", "info", "warn"]:
+        print(msg, file=sys.stderr)
+    logger.warning(msg)
 
 
 def logfmt(props):
