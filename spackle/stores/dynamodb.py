@@ -12,7 +12,7 @@ from spackle.exceptions import SpackleException
 
 
 class DynamoDBStore(Store):
-    adapter_config = {}
+    store_config = {}
 
     def __init__(self):
         self.client = self._bootstrap_client()
@@ -22,14 +22,14 @@ class DynamoDBStore(Store):
 
         response = self.client.query(
             ExpressionAttributeValues={
-                ":account_id": {"S": self.adapter_config.get("identity_id", "")},
+                ":account_id": {"S": self.store_config.get("identity_id", "")},
                 ":customer_id": {"S": customer_id},
                 ":version": {"N": str(schema_version)},
             },
             FilterExpression="Version = :version",
             KeyConditionExpression=f"AccountId = :account_id AND CustomerId = :customer_id",
             Limit=1,
-            TableName=self.adapter_config.get("table_name", ""),
+            TableName=self.store_config.get("table_name", ""),
         )
 
         items = response.get("Items")
@@ -52,7 +52,7 @@ class DynamoDBStore(Store):
         session._credentials = session_credentials
         autorefresh_session = Session(botocore_session=session)
         return autorefresh_session.client(
-            "dynamodb", region_name=self.adapter_config["region"]
+            "dynamodb", region_name=self.store_config["region"]
         )
 
     def _refresh_credentials(self):
@@ -68,18 +68,18 @@ class DynamoDBStore(Store):
             headers={"Authorization": f"Bearer {api_key}"},
         ).json()
 
-        self.adapter_config = session["adapter"]
+        self.store_config = session["adapter"]
         log.log_debug("Configured adapter: %s" % session)
 
         return session
 
     def _fetch_credentials(self):
-        log.log_debug("Assuming aws role %s..." % self.adapter_config["role_arn"])
+        log.log_debug("Assuming aws role %s..." % self.store_config["role_arn"])
         sts_client = boto3.client("sts")
         response = sts_client.assume_role_with_web_identity(
-            RoleArn=self.adapter_config["role_arn"],
+            RoleArn=self.store_config["role_arn"],
             RoleSessionName=str(uuid.uuid4()),
-            WebIdentityToken=self.adapter_config["token"],
+            WebIdentityToken=self.store_config["token"],
         )
 
         return {

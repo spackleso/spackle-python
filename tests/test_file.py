@@ -1,15 +1,17 @@
-import spackle
-
+import json
 import pytest
 from unittest import mock
-from spackle import MemoryStore
+
+import spackle
+from spackle import FileStore
 
 spackle.api_key = "abc123"
 
 
 class TestCustomer:
     def test_retrieve(self):
-        spackle.set_store(MemoryStore())
+        path = '/tmp/spackle.json'
+        spackle.set_store(FileStore(path))
         spackle.get_store().set_customer_data(
             "cus_123",
             {
@@ -19,3 +21,12 @@ class TestCustomer:
         )
         customer = spackle.Customer.retrieve("cus_123")
         assert customer.enabled("foo") is True
+
+        with open(path, "r") as f:
+            data = json.load(f)
+            assert data == {
+                "cus_123": {
+                    "subscriptions": [],
+                    "features": [{"key": "foo", "value_flag": True, "type": 0}],
+                }
+            }
