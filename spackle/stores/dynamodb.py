@@ -34,7 +34,7 @@ class DynamoDBStore(Store):
 
         items = response.get("Items")
         if not items:
-            raise SpackleException("Customer %s not found" % customer_id)
+            return self._fetch_state_from_api(customer_id)
 
         data = json.loads(items[0]["State"]["S"])
         log.log_debug("Retrieved customer data for %s: %s" % (customer_id, data))
@@ -88,3 +88,19 @@ class DynamoDBStore(Store):
             "token": response["Credentials"]["SessionToken"],
             "expiry_time": response["Credentials"]["Expiration"].isoformat(),
         }
+
+    def _fetch_state_from_api(self, customer_id):
+        from spackle import api_key, api_base
+
+        log.log_warn("Customer %s not found in store, using API" % customer_id)
+        response = requests.post(
+            f"{api_base}/customers/{customer_id}/state",
+            headers={"Authorization": f"Bearer {api_key}"},
+        )
+
+        if response.status_code != 200:
+            raise SpackleException("Customer %s not found" % customer_id)
+
+        data = response.json()
+        log.log_debug("Retrieved customer data for %s: %s" % (customer_id, data))
+        return data
