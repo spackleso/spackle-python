@@ -34,3 +34,28 @@ class TestCustomer:
         assert customer.limit("zero") == 0
         with pytest.raises(spackle.SpackleException):
             customer.limit("bar")
+
+    def test_subscriptions(self):
+        customer = spackle.Customer(
+            "cus_123",
+            data={
+                "subscriptions": [
+                    {
+                        "id": "sub_123",
+                        "status": "active",
+                        "price": {
+                            "id": "price_123",
+                        },
+                        "product": {
+                            "id": "prod_123",
+                        },
+                    }
+                ],
+                "features": [{"key": "foo", "value_flag": True, "type": 0}],
+            },
+        )
+        assert len(customer.subscriptions) == 1
+        assert customer.subscriptions[0].id == "sub_123"
+        assert customer.subscriptions[0].status == "active"
+        assert customer.subscriptions[0].price["id"] == "price_123"
+        assert customer.subscriptions[0].product["id"] == "prod_123"

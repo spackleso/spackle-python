@@ -3,6 +3,7 @@ import pprint
 
 from spackle import log
 from spackle.exceptions import SpackleException
+from spackle.subscription import Subscription
 
 
 class Customer:
@@ -22,6 +23,10 @@ class Customer:
     @property
     def features(self):
         return self.data["features"]
+
+    @property
+    def subscriptions(self):
+        return [Subscription(s) for s in self.data["subscriptions"]]
 
     @property
     def flag_features(self):
