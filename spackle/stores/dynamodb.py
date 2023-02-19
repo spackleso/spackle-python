@@ -93,13 +93,16 @@ class DynamoDBStore(Store):
         from spackle import api_key, api_base
 
         log.log_warn("Customer %s not found in store, using API" % customer_id)
-        response = requests.post(
+        response = requests.get(
             f"{api_base}/customers/{customer_id}/state",
             headers={"Authorization": f"Bearer {api_key}"},
         )
 
         if response.status_code != 200:
-            raise SpackleException("Customer %s not found" % customer_id)
+            raise SpackleException(
+                "Customer %s not found; status code: %s; response: %s"
+                % (customer_id, response.status_code, response.text)
+            )
 
         data = response.json()
         log.log_debug("Retrieved customer data for %s: %s" % (customer_id, data))
