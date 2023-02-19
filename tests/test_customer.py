@@ -43,11 +43,18 @@ class TestCustomer:
                     {
                         "id": "sub_123",
                         "status": "active",
-                        "price": {
-                            "id": "price_123",
-                        },
-                        "product": {
-                            "id": "prod_123",
+                        "items": {
+                            "data": [
+                                {
+                                    "id": "si_123",
+                                    "price": {
+                                        "id": "price_123",
+                                        "product": {
+                                            "id": "prod_123",
+                                        },
+                                    },
+                                }
+                            ]
                         },
                     }
                 ],
@@ -57,5 +64,3 @@ class TestCustomer:
         assert len(customer.subscriptions) == 1
         assert customer.subscriptions[0].id == "sub_123"
         assert customer.subscriptions[0].status == "active"
-        assert customer.subscriptions[0].price["id"] == "price_123"
-        assert customer.subscriptions[0].product["id"] == "prod_123"

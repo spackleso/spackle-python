@@ -1,9 +1,8 @@
-import json
 import pprint
 
+import stripe
 from spackle import log
 from spackle.exceptions import SpackleException
-from spackle.subscription import Subscription
 
 
 class Customer:
@@ -26,7 +25,12 @@ class Customer:
 
     @property
     def subscriptions(self):
-        return [Subscription(s) for s in self.data["subscriptions"]]
+        subscriptions = []
+        for s in self.data["subscriptions"]:
+            stripe_sub = stripe.Subscription(id=s["id"])
+            stripe_sub.update(s)
+            subscriptions.append(stripe_sub)
+        return subscriptions
 
     @property
     def flag_features(self):
