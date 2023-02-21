@@ -1,3 +1,5 @@
+import copy
+
 from spackle import log
 from spackle.constants import FEATURE_TYPE_FLAG
 from spackle.exceptions import SpackleException
@@ -19,7 +21,7 @@ class MemoryStore(Store):
         self.data[customer_id] = data
 
     def set_customer_feature_value(self, customer_id, key, value):
-        customer_data = self.get_customer_data(customer_id)
+        customer_data = copy.deepcopy(self.get_customer_data(customer_id))
         for feature in customer_data["features"]:
             if feature["key"] == key:
                 if feature["type"] == FEATURE_TYPE_FLAG:
