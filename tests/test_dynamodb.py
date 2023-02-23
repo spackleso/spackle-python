@@ -1,6 +1,5 @@
 import spackle
 
-import pytest
 from unittest import mock
 
 from spackle import DynamoDBStore

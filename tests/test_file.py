@@ -1,6 +1,4 @@
 import json
-import pytest
-from unittest import mock
 
 import spackle
 from spackle import FileStore
@@ -10,7 +8,7 @@ spackle.api_key = "abc123"
 
 class TestCustomer:
     def test_retrieve(self):
-        path = '/tmp/spackle.json'
+        path = "/tmp/spackle.json"
         spackle.set_store(FileStore(path))
         spackle.get_store().set_customer_data(
             "cus_123",

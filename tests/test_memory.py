@@ -1,7 +1,5 @@
 import spackle
 
-import pytest
-from unittest import mock
 from spackle import MemoryStore
 
 spackle.api_key = "abc123"
