@@ -49,3 +49,32 @@ class TestWaiters:
 
         sub = spackle.wait_for_subscription("cus_123", "sub_123", timeout=1)
         assert sub.id == "sub_123"
+
+    def test_wait_for_subscription_with_status_filter(self):
+        spackle.set_store(MemoryStore())
+
+        spackle.get_store().set_customer_data(
+            "cus_123",
+            {
+                "subscriptions": [{"id": "sub_123", "status": "trialing"}],
+                "features": [{"key": "foo", "value_flag": True, "type": 0}],
+            },
+        )
+
+        with pytest.raises(spackle.SpackleException):
+            spackle.wait_for_subscription(
+                "cus_123", "sub_123", timeout=1, status="active"
+            )
+
+        spackle.get_store().set_customer_data(
+            "cus_123",
+            {
+                "subscriptions": [{"id": "sub_123", "status": "active"}],
+                "features": [{"key": "foo", "value_flag": True, "type": 0}],
+            },
+        )
+
+        sub = spackle.wait_for_subscription(
+            "cus_123", "sub_123", timeout=1, status="active"
+        )
+        assert sub.id == "sub_123"
