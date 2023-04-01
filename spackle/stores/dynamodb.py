@@ -18,27 +18,27 @@ class DynamoDBStore(Store):
         self.client = self._bootstrap_client()
 
     def get_customer_data(self, customer_id):
-        from spackle import schema_version
-
-        response = self.client.query(
-            ExpressionAttributeValues={
-                ":account_id": {"S": self.store_config.get("identity_id", "")},
-                ":customer_id": {"S": customer_id},
-                ":version": {"N": str(schema_version)},
-            },
-            FilterExpression="Version = :version",
-            KeyConditionExpression=f"AccountId = :account_id AND CustomerId = :customer_id",
-            Limit=1,
+        key = {
+            "AccountId": {"S": self.store_config.get("identity_id", "")},
+            "CustomerId": {"S": self._customer_key(customer_id)},
+        }
+        response = self.client.get_item(
+            Key=key,
             TableName=self.store_config.get("table_name", ""),
         )
 
-        items = response.get("Items")
-        if not items:
+        item = response.get("Item")
+        if not item:
             return self._fetch_state_from_api(customer_id)
 
-        data = json.loads(items[0]["State"]["S"])
+        data = json.loads(item["State"]["S"])
         log.log_debug("Retrieved customer data for %s: %s" % (customer_id, data))
         return data
+
+    def _customer_key(self, customer_id):
+        from spackle import schema_version
+
+        return f"{customer_id}:{schema_version}"
 
     def _bootstrap_client(self):
         log.log_debug("Creating DynamoDB client...")
