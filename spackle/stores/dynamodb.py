@@ -18,12 +18,11 @@ class DynamoDBStore(Store):
         self.client = self._bootstrap_client()
 
     def get_customer_data(self, customer_id):
-        key = {
-            "AccountId": {"S": self.store_config.get("identity_id", "")},
-            "CustomerId": {"S": self._customer_key(customer_id)},
-        }
         response = self.client.get_item(
-            Key=key,
+            Key={
+                "AccountId": {"S": self.store_config.get("identity_id", "")},
+                "CustomerId": {"S": self._customer_key(customer_id)},
+            },
             TableName=self.store_config.get("table_name", ""),
         )
 
