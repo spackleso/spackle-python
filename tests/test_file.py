@@ -6,7 +6,7 @@ from spackle import FileStore
 spackle.api_key = "abc123"
 
 
-class TestCustomer:
+class TestFileStore:
     def test_retrieve(self):
         path = "/tmp/spackle.json"
         spackle.set_store(FileStore(path))

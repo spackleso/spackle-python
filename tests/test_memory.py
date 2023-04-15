@@ -5,7 +5,7 @@ from spackle import MemoryStore
 spackle.api_key = "abc123"
 
 
-class TestCustomer:
+class TestMemoryStore:
     def test_retrieve(self):
         spackle.set_store(MemoryStore())
         spackle.get_store().set_customer_data(

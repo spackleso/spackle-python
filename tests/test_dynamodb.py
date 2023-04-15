@@ -7,7 +7,7 @@ from spackle import DynamoDBStore
 spackle.api_key = "abc123"
 
 
-class TestCustomer:
+class TestDynamoDBStore:
     def test_retrieve(self):
         mock_client = mock.Mock()
         mock_client.get_item.return_value = {
