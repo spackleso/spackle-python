@@ -38,7 +38,7 @@ class EdgeStore:
             headers={"Authorization": f"Bearer {api_key}"},
         )
 
-        if response.status_code != 200:
+        if response.status != 200:
             raise SpackleException(
                 "Customer %s not found; status code: %s; response: %s"
                 % (customer_id, response.status, response.data.decode("utf-8"))
