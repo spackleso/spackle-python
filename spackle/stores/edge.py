@@ -33,6 +33,7 @@ class EdgeStore:
 
         log.log_warn("Customer %s not found in store, using API" % customer_id)
         response = self.http.request(
+            "GET",
             f"{api_base}/customers/{customer_id}/state",
             headers={"Authorization": f"Bearer {api_key}"},
         )
