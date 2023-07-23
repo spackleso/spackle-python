@@ -32,7 +32,7 @@ class EdgeStore:
         from spackle import api_key, api_base
 
         log.log_warn("Customer %s not found in store, using API" % customer_id)
-        response = self.http.get(
+        response = self.http.request(
             f"{api_base}/customers/{customer_id}/state",
             headers={"Authorization": f"Bearer {api_key}"},
         )
