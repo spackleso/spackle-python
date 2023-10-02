@@ -42,6 +42,8 @@ pricing_table = spackle.PricingTable.retrieve("abcde123")
   intervals: string[]
   products: {
     id: string
+    description: string
+    name: string
     features: {
       id: string
       name: string
@@ -50,7 +52,6 @@ pricing_table = spackle.PricingTable.retrieve("abcde123")
       value_flag: boolean
       value_limit: number | null
     }[]
-    name: string
     prices: {
       month?: {
         id: string
